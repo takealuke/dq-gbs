@@ -1,6 +1,11 @@
-# Getting Started with Create React App
+# Google Books Search
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a simple web application built with React (bootstrapped with [Create React App](https://github.com/facebook/create-react-app))
+that allows searching of the Google Books data set via the Google Books API
+
+Run `npm install` to install dependencies
+Then run `npm start` and Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
 
 ## Available Scripts
 
@@ -21,50 +26,44 @@ See the section about [running tests](https://facebook.github.io/create-react-ap
 
 ### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Builds the app for production to the `build` folder.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## AN IMPORTANT NOTE ABOUT API LIMITATIONS AND MY APPROACH:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+_The Google Books API has a maxResults limit of 40_
 
-### `npm run eject`
+My initial approach was to keep the request payload small and fetch only 10 at a time 
+This would do a query for every 'page' of results.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+However, the requirements call for some displayed values that require looking at the ENTIRE set of volumes:
+ 
+ "The search as a whole should also return the:
+  total number of search results,
+  name of the single author who appears most commonly in the results,
+  earliest and most recent publication dates within the search parameters,"
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The response from the API does include a "totalItems" so I can use that, 
+but for the most common author(s) and the earliest and most recent
+I need to look at each volume's data payload
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+I decided for this exercise just to use the max query (40) and implement the features 
+as if that was the total payload (other than the total volume count)
+So the component shows the most common author within the fetched 40 volumes, and the earliest and most recent from that 40 volumes.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+All queries will just return 40 volumes or less (there will usually be 10 pages.)
 
-## Learn More
+If I were to implement this to display all volumes for any given query
+I would do an initial query to get the "totalItems" value and the first 40 volumes 
+Then I would use Promise.all() with a list of API urls setting the startIndex and maxResults
+values incrementally so that I fetch all of the remaining volumes
+The application would work the same way with 'volumes' set to that larger list
+So it would just be a matter of implementing the promise.all procedure to pull down all the volumes.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## OTHER IMPROVEMENTS:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+An improvement to this implementation would be to get and set URL Search Parameters (query string args) 
+to allow for initializing state from the url.
+So a URL to this app with "?q=shrek&s=20&i=4" in the search area would immediately search for books about "shrek"
+and display the results starting at the third page (20-29) with the 4th item expanded
+Then as the user does a new search, and interacts, the URL would update so that they could send the state
+to another user.\
